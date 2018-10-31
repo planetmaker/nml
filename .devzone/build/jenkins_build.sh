@@ -56,6 +56,7 @@ cd ..
 # Create the editor files
 ./gen_editor kate
 ./gen_editor notepadpp
+./gen_editor visualstudio
 mv *.xml dist
 
 echo "Build date: $DATE"        > dist/release.txt

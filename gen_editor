@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 import sys
-from nml.editors import kate, notepadpp
+from nml.editors import kate, notepadpp, visualstudio
 
 def run():
     if len(sys.argv) != 2 or sys.argv[1] not in ('kate', 'notepadpp'):
@@ -13,6 +13,8 @@ def run():
         kate.run()
     elif sys.argv[1] == 'notepadpp':
         notepadpp.run()
+    elif sys.argv[1] == 'visualstudio':
+        visualstudio.run()
     else:
         assert False, "Unknown editor name encountered."
 
