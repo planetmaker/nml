@@ -46,7 +46,7 @@ class Action5(base_action.BaseAction):
         #To be on the safe side, don't allow skipping with Action7 at all
         return False
 
-class Action5BlockType(object):
+class Action5BlockType:
     FIXED  = 0, #fixed number of sprites
     ANY    = 1, #any number of sprites
     OFFSET = 2, #flexible number of sprites, offset may be set
@@ -75,7 +75,7 @@ action5_table = {
     'AQUEDUCTS' : (0x12, 8, Action5BlockType.OFFSET),
     'AUTORAIL' : (0x13, 55, Action5BlockType.OFFSET),
     'FLAGS' : (0x14, 36, Action5BlockType.OFFSET),
-    'OTTD_GUI' : (0x15, 175, Action5BlockType.OFFSET),
+    'OTTD_GUI' : (0x15, 184, Action5BlockType.OFFSET),
     'AIRPORT_PREVIEW' : (0x16, 9, Action5BlockType.OFFSET),
     'RAILTYPE_TUNNELS': (0x17, 16, Action5BlockType.OFFSET),
     'OTTD_RECOLOUR' : (0x18, 1, Action5BlockType.OFFSET),

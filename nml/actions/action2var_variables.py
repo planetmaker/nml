@@ -15,11 +15,11 @@ with NML; if not, write to the Free Software Foundation, Inc.,
 
 from nml import expression, nmlop, generic
 
-# Use feature 0x12 for towns (accessible via station/house/industry parent scope)
-varact2vars = 0x13 * [{}]
-varact2vars60x = 0x13 * [{}]
-# feature number:      0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12
-varact2parent_scope = [0x00, 0x01, 0x02, 0x03, 0x12, None, 0x12, 0x12, None, 0x0A, 0x12, None, None, None, None, 0x12, None, None, None]
+# Use feature 0x14 for towns (accessible via station/house/industry parent scope)
+varact2vars = 0x15 * [{}]
+varact2vars60x = 0x15 * [{}]
+# feature number:      0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13
+varact2parent_scope = [0x00, 0x01, 0x02, 0x03, 0x14, None, 0x14, 0x14, None, 0x0A, 0x14, None, None, None, None, 0x14, None, None, None, None]
 
 def default_60xvar(name, args, pos, info):
     """
@@ -98,7 +98,7 @@ varact2_globalvars = {
     'current_day_of_month' : {'var': 0x02, 'start':  8, 'size':  5},
     'is_leapyear'          : {'var': 0x02, 'start': 15, 'size':  1},
     'current_day_of_year'  : {'var': 0x02, 'start': 16, 'size':  9},
-    'traffic_side'         : {'var': 0x06, 'start':  0, 'size':  8},
+    'traffic_side'         : {'var': 0x06, 'start':  4, 'size':  1},
     'animation_counter'    : {'var': 0x0A, 'start':  0, 'size': 16},
     'current_callback'     : {'var': 0x0C, 'start':  0, 'size': 16},
     'extra_callback_info1' : {'var': 0x10, 'start':  0, 'size': 32},
@@ -149,7 +149,6 @@ varact2vars_vehicles = {
     'vehicle_is_testing'               : {'var': 0x48, 'start':  1, 'size':  1},
     'vehicle_is_offered'               : {'var': 0x48, 'start':  2, 'size':  1},
     'build_year'                       : {'var': 0x49, 'start':  0, 'size': 32},
-    'current_railtype'                 : {'var': 0x4A, 'start':  0, 'size':  8},
     'vehicle_is_potentially_powered'   : {'var': 0x4A, 'start':  8, 'size':  1},
     'date_of_last_service'             : {'var': 0x4B, 'start':  0, 'size': 32},
     'position_in_articulated_veh'          : {'var': 0x4D, 'start':  0, 'size':  8},
@@ -184,6 +183,7 @@ varact2vars_trains = {
     #for train speed
     'max_speed'           : {'var': 0x98, 'start': 0, 'size': 16, 'value_function': value_mul_div(0x4786, 0x10000)},
     'current_speed'       : {'var': 0xB4, 'start': 0, 'size': 16, 'value_function': value_mul_div(0x4786, 0x10000)},
+    'current_railtype'    : {'var': 0x4A, 'start':  0, 'size':  8},
     'current_max_speed'   : {'var': 0x4C, 'start': 0, 'size': 16, 'value_function': value_mul_div(0x4786, 0x10000)},
     'vehicle_is_in_depot' : {'var': 0xE2, 'start': 7, 'size':  1},
 }
@@ -194,6 +194,8 @@ varact2vars_roadvehs = {
     #for road vehicle speed
     'max_speed'           : {'var': 0x98, 'start': 0, 'size': 16, 'value_function': value_mul_div(0x23C3, 0x10000)},
     'current_speed'       : {'var': 0xB4, 'start': 0, 'size': 16, 'value_function': value_mul_div(0x23C3, 0x10000)},
+    'current_roadtype'    : {'var': 0x4A, 'start':  0, 'size':  8},
+    'current_tramtype'    : {'var': 0x4A, 'start':  0, 'size':  8},
     'current_max_speed'   : {'var': 0x4C, 'start': 0, 'size': 16, 'value_function': value_mul_div(0x23C3, 0x10000)},
     'vehicle_is_in_depot' : {'var': 0xE2, 'start': 0, 'size':  8, 'value_function': value_equals(0xFE)},
 }
@@ -495,9 +497,6 @@ varact2vars60x_industrytiles = {
 #
 
 varact2vars_industries = {
-    'waiting_cargo_1'              : {'var': 0x40, 'start':  0, 'size': 16},
-    'waiting_cargo_2'              : {'var': 0x41, 'start':  0, 'size': 16},
-    'waiting_cargo_3'              : {'var': 0x42, 'start':  0, 'size': 16},
     'water_distance'               : {'var': 0x43, 'start':  0, 'size': 32},
     'layout_num'                   : {'var': 0x44, 'start':  0, 'size':  8},
     # bits 0 .. 16 are either useless or already covered by var A7
@@ -506,21 +505,9 @@ varact2vars_industries = {
     'founder_colour2'              : {'var': 0x45, 'start': 28, 'size':  4},
     'build_date'                   : {'var': 0x46, 'start':  0, 'size': 32},
     'random_bits'                  : {'var': 0x5F, 'start':  8, 'size': 16},
-    'produced_cargo_waiting_1'     : {'var': 0x8A, 'start':  0, 'size': 16},
-    'produced_cargo_waiting_2'     : {'var': 0x8C, 'start':  0, 'size': 16},
     'production_rate_1'            : {'var': 0x8E, 'start':  0, 'size':  8},
     'production_rate_2'            : {'var': 0x8F, 'start':  0, 'size':  8},
     'production_level'             : {'var': 0x93, 'start':  0, 'size':  8},
-    'produced_this_month_1'        : {'var': 0x94, 'start':  0, 'size': 16},
-    'produced_this_month_2'        : {'var': 0x96, 'start':  0, 'size': 16},
-    'transported_this_month_1'     : {'var': 0x98, 'start':  0, 'size': 16},
-    'transported_this_month_2'     : {'var': 0x9A, 'start':  0, 'size': 16},
-    'transported_last_month_pct_1' : {'var': 0x9C, 'start':  0, 'size':  8, 'value_function': value_mul_div(101, 256)},
-    'transported_last_month_pct_2' : {'var': 0x9D, 'start':  0, 'size':  8, 'value_function': value_mul_div(101, 256)},
-    'produced_last_month_1'        : {'var': 0x9E, 'start':  0, 'size': 16},
-    'produced_last_month_2'        : {'var': 0xA0, 'start':  0, 'size': 16},
-    'transported_last_month_1'     : {'var': 0xA2, 'start':  0, 'size': 16},
-    'transported_last_month_2'     : {'var': 0xA4, 'start':  0, 'size': 16},
     'founder'                      : {'var': 0xA7, 'start':  0, 'size':  8},
     'colour'                       : {'var': 0xA8, 'start':  0, 'size':  8},
     'counter'                      : {'var': 0xAA, 'start':  0, 'size': 16},
@@ -560,6 +547,10 @@ def industry_town_count(name, args, pos, info):
     extra_params.append( (0x101, expression.ConstantNumeric(0x0100)) )
     return (args[0], extra_params)
 
+def industry_cargotype(name, args, pos, info):
+    from nml.expression.functioncall import builtin_cargotype
+    return (builtin_cargotype(name, args, pos), [])
+
 varact2vars60x_industries = {
     'nearby_tile_industry_tile_id' : {'var': 0x60, 'start':  0, 'size': 16, 'param_function': unsigned_tile_offset},
     'nearby_tile_random_bits'      : {'var': 0x61, 'start':  0, 'size':  8, 'param_function': unsigned_tile_offset},
@@ -578,6 +569,13 @@ varact2vars60x_industries = {
     'industry_layout_count'        : {'var': 0x68, 'start': 16, 'size':  8, 'param_function': industry_layout_count},
     'industry_layout_distance'     : {'var': 0x68, 'start':  0, 'size': 16, 'param_function': industry_layout_count},
     'industry_town_count'          : {'var': 0x68, 'start': 16, 'size':  8, 'param_function': industry_town_count},
+    'produced_cargo_waiting'       : {'var': 0x69, 'start':  0, 'size': 32, 'param_function': industry_cargotype},
+    'this_month_production'        : {'var': 0x6A, 'start':  0, 'size': 32, 'param_function': industry_cargotype},
+    'this_month_transported'       : {'var': 0x6B, 'start':  0, 'size': 32, 'param_function': industry_cargotype},
+    'last_month_production'        : {'var': 0x6C, 'start':  0, 'size': 32, 'param_function': industry_cargotype},
+    'last_month_transported'       : {'var': 0x6D, 'start':  0, 'size': 32, 'param_function': industry_cargotype},
+    'last_cargo_accepted_at'       : {'var': 0x6E, 'start':  0, 'size': 32, 'param_function': industry_cargotype},
+    'incoming_cargo_waiting'       : {'var': 0x6F, 'start':  0, 'size': 32, 'param_function': industry_cargotype},
 }
 
 #
@@ -686,6 +684,35 @@ varact2vars60x_airporttiles = {
 }
 
 #
+# Roadtypes (feature 0x12)
+#
+
+varact2vars_roadtype = {
+    'terrain_type'          : {'var': 0x40, 'start': 0, 'size':  8},
+    'enhanced_tunnels'      : {'var': 0x41, 'start': 0, 'size':  8},
+    'level_crossing_status' : {'var': 0x42, 'start': 0, 'size':  8},
+    'build_date'            : {'var': 0x43, 'start': 0, 'size': 32},
+    'town_zone'             : {'var': 0x44, 'start': 0, 'size':  8},
+    'random_bits'           : {'var': 0x5F, 'start': 8, 'size':  2},
+}
+# Roadtypes have no 60+x variables
+
+#
+# Tramtypes (feature 0x13)
+#
+
+varact2vars_tramtype = {
+    'terrain_type'          : {'var': 0x40, 'start': 0, 'size':  8},
+    'enhanced_tunnels'      : {'var': 0x41, 'start': 0, 'size':  8},
+    'level_crossing_status' : {'var': 0x42, 'start': 0, 'size':  8},
+    'build_date'            : {'var': 0x43, 'start': 0, 'size': 32},
+    'town_zone'             : {'var': 0x44, 'start': 0, 'size':  8},
+    'random_bits'           : {'var': 0x5F, 'start': 8, 'size':  2},
+}
+# Tramtypes have no 60+x variables
+
+
+#
 # Towns are not a true feature, but accessible via the parent scope of e.g. industries, stations
 #
 
@@ -730,4 +757,6 @@ varact2vars60x[0x0F] = varact2vars60x_objects
 varact2vars[0x10] = varact2vars_railtype
 varact2vars[0x11] = varact2vars_airporttiles
 varact2vars60x[0x11] = varact2vars60x_airporttiles
-varact2vars[0x12] = varact2vars_towns
+varact2vars[0x12] = varact2vars_roadtype
+varact2vars[0x13] = varact2vars_tramtype
+varact2vars[0x14] = varact2vars_towns

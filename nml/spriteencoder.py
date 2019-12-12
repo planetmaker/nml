@@ -20,10 +20,7 @@ from nml.actions import real_sprite
 try:
     from PIL import Image
 except ImportError:
-    try:
-        import Image
-    except ImportError:
-        pass
+    pass
 
 # Some constants for the 'info' byte
 INFO_RGB    = 1
@@ -58,7 +55,7 @@ def transparency_offset(info):
     else:
         return 0
 
-class SpriteEncoder(object):
+class SpriteEncoder:
     """
     Algorithms for cropping and compressing sprites. That is encoding source images into GRF sprites.
 

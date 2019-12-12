@@ -1,19 +1,25 @@
 /*
- * This file is aimed to provide an example on how to code a vehicle in NML
- * In this case a train is coded, other vehicle types work in a similar fashion.
+ * This file is aimed to provide an example on how to code vehicles in NML
+ * In the first case a train is coded, other vehicle types work in a similar fashion.
+ * The second case provides examples for using the sprite stack
+ * https://newgrf-specs.tt-wiki.net/wiki/NML:Vehicles#Composing_vehicles_from_multiple_sprites
+ *
  * To keep the code readable, not every property or variable is documented in
  * detail, refer to the vehicle-specific reference in the documentation.
- * The coded vehicle is quite complex, in order to show the various possibilities.
+ * The coded vehicles are quite complex, in order to show the various possibilities.
  * For a more simple example, refer to the example road vehicle.
  *
- * The vehicle coded here is a Dutch EMU, the ICM 'Koploper'
+ * The first vehicle coded here is a Dutch EMU, the ICM 'Koploper'
  * Graphics are by Purno, the original NFO code is written by DJNekkid
  * As in real life, you can choose between a 3- and 4-part variant,
  * to be selected via refitting. This adds some complexity, which
  * provided the needed excuse to implement a lot of callbacks :)
  *
+ * The second vehicle coded shows how to use the sprite stack to draw a vehicle
+ * using multiple layers of sprites.
+ *
  * Apart from this file, you will also need the following
- * - Graphics, found in icm.png (in the same folder)
+ * - Graphics, found in icm.png and cargo_wagon.png (in the same folder)
  * - Language files, to be placed in the 'lang' folder.
  *      Currently english.lng and dutch.lng are supplied.
  */
@@ -102,6 +108,8 @@ template tmpl_vehicle_single(num, xsize, ysize, xrel, yrel) {
     [1, 1 + 32 * num, xsize, ysize, xrel, yrel]
 }
 
+/* ------------------ ICM EMU Train Example ------------------ */
+
 /* Define the spritesets, these allow referring to these sprites later on */
 spriteset (set_icm_front_lighted, "icm.png") { tmpl_vehicle_8_views(0, 0) }
 spriteset (set_icm_rear_lighted,  "icm.png") { tmpl_vehicle_8_views(1, 1) }
@@ -187,7 +195,7 @@ switch(FEAT_TRAINS, SELF, sw_icm_shorten_3_part_vehicle, position_in_consist % 4
     return SHORTEN_TO_8_8;
 }
 
-switch(FEAT_TRAINS, SELF, sw_icm_shorten_vehicle, cargo_subtype) {
+switch(FEAT_TRAINS, SELF, sw_icm_length, cargo_subtype) {
     0: sw_icm_shorten_3_part_vehicle;
     return SHORTEN_TO_8_8; // 4-part vehicle needs no shortening
 }
@@ -282,7 +290,7 @@ item(FEAT_TRAINS, icm) {
         visual_effect_and_powered: return (position_in_consist % 4 == 0) ?
                                         visual_effect_and_powered(VISUAL_EFFECT_ELECTRIC, 2, DISABLE_WAGON_POWER) :
                                         visual_effect_and_powered(VISUAL_EFFECT_DISABLE, 0, DISABLE_WAGON_POWER);
-        shorten_vehicle: sw_icm_shorten_vehicle;
+        length: sw_icm_length;
         /* Only the front vehicle has power */
         purchase_power: return int(1260 / 0.7457); // kW
         power: sw_icm_power;
@@ -305,4 +313,46 @@ if (version_openttd(1,2,0,22713) < openttd_version) {
 			cargo_age_period: 185; // default value
 		}
 	}
+}
+
+/* ------------------ Cargo Wagons Example ------------------ */
+
+/* This example does not feature complete handling of cargo sprites.
+   There are no loaded/loading states, and there is only one type of cargo used.
+   It's purely to demonstrate how to use the sprite stack
+*/
+
+spriteset (set_cargo_wagon,        "cargo_wagons.png") { tmpl_vehicle_4_views(0)    }
+spriteset (set_cargo_wagon_load,   "cargo_wagons.png") { tmpl_vehicle_4_views(1)    }
+
+switch (FEAT_TRAINS, SELF, cargo_wagon_switch_vehicle, STORE_TEMP(CB_FLAG_MORE_SPRITES | PALETTE_USE_DEFAULT, 0x100)) {
+    return set_cargo_wagon;
+}
+
+switch (FEAT_TRAINS, SELF, cargo_wagon_switch_load, STORE_TEMP(PALETTE_USE_DEFAULT, 0x100)) {
+    return set_cargo_wagon_load;
+}
+
+switch (FEAT_TRAINS, SELF, cargo_wagon_switch_graphics, getbits(extra_callback_info1, 8, 8)) {
+    0: return cargo_wagon_switch_vehicle;
+    return cargo_wagon_switch_load;
+}
+
+item(FEAT_TRAINS, cargo_wagon_1) {
+    property {
+        name: string(STR_CARGO_WAGON_1_NAME);
+        climates_available: ALL_CLIMATES;
+        introduction_date: date(1900, 1, 1);
+        model_life: VEHICLE_NEVER_EXPIRES;
+        refittable_cargo_classes: bitmask(CC_PIECE_GOODS);
+        sprite_id: SPRITE_ID_NEW_TRAIN;
+        misc_flags: bitmask(TRAIN_FLAG_SPRITE_STACK);
+        cargo_capacity: 40;
+        weight: 20 ton;
+        power: 0hp;
+    }
+    graphics {
+        default: cargo_wagon_switch_graphics;
+        purchase: cargo_wagon_switch_graphics;
+    }
 }

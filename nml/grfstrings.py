@@ -228,6 +228,8 @@ commands = {
 'DKBLUE':         {'unicode': r'\UE097',    'ascii': r'\97'},
 'BLACK':          {'unicode': r'\UE098',    'ascii': r'\98'},
 
+'PUSH_COLOUR':    {'unicode': r'\UE09A\1F', 'ascii': r'\9A\1F'},
+'POP_COLOUR':     {'unicode': r'\UE09A\20', 'ascii': r'\9A\20'},
 
 # Deprecated string codes
 'DWORD_S':        {'unicode': r'\UE07B',    'ascii': r'\7B', 'deprecated': True, 'size': 4},
@@ -278,7 +280,7 @@ def read_extra_commands(custom_tags_file):
             commands[name]['ascii'] = value
 
 
-class StringCommand(object):
+class StringCommand:
     """
     Instantiated string command.
 
@@ -498,7 +500,7 @@ def validate_escapes(string, pos):
                 raise generic.ScriptError("Expected 2 hexadecimal characters after '\\'", pos)
             i += 3
 
-class NewGRFString(object):
+class NewGRFString:
     """
     A string text in a language.
 
@@ -618,7 +620,7 @@ class NewGRFString(object):
                     return 'unicode'
             else:
                 if not is_ascii_string(comp): return 'unicode'
-        for case in list(self.cases.values()):
+        for case in self.cases.values():
             if case.get_type() == 'unicode':
                 return 'unicode'
         return 'ascii'
@@ -761,7 +763,7 @@ LANG_INFOS = [('af_ZA', 0x1b,  0),
 LANG_NAMES = dict((lng[0], lng[1]) for lng in LANG_INFOS)
 LANG_PLURALS = dict((lng[1], lng[2]) for lng in LANG_INFOS)
 
-class Language(object):
+class Language:
     """
     @ivar default: Whether the language is the default language.
     @type default: C{bool}

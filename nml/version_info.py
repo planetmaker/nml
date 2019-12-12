@@ -138,14 +138,10 @@ def get_lib_versions():
     versions = {}
     #PIL
     try:
-        from PIL import Image
-        versions["PIL"] = Image.VERSION
+        import PIL
+        versions["PIL"] = PIL.__version__
     except ImportError:
-        try:
-            import Image
-            versions["PIL"] = Image.VERSION
-        except ImportError:
-            versions["PIL"] = "Not found!"
+        versions["PIL"] = "Not found!"
 
     #PLY
     try:
@@ -173,7 +169,7 @@ def get_cli_version():
     #version string for usage in command line
     result = get_nml_version() + "\n"
     result += "Library versions encountered:\n"
-    for lib, lib_ver in list(get_lib_versions().items()):
+    for lib, lib_ver in get_lib_versions().items():
         result += lib + ": " + lib_ver + "\n"
     return result[0:-1] #strip trailing newline
 

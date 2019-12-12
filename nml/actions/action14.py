@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along
 with NML; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA."""
 
-from nml import grfstrings
+from nml import generic, grfstrings
 from nml.actions import base_action
 
 
@@ -72,7 +72,7 @@ def get_actions(root):
 
     return action_list
 
-class Action14Node(object):
+class Action14Node:
     def __init__(self, type_string, id):
         self.type_string = type_string
         self.id = id
@@ -247,8 +247,13 @@ def param_desc_actions(root, params):
                 setting_node.subnodes.append(TextNode("DESC", setting.desc_string))
             if setting.type == 'int':
                 setting_node.subnodes.append(BinaryNode("MASK", 1, param_num))
-                min_val = setting.min_val.value if setting.min_val is not None else 0
-                max_val = setting.max_val.value if setting.max_val is not None else 0xFFFFFFFF
+                min_val = setting.min_val.uvalue if setting.min_val is not None else 0
+                max_val = setting.max_val.uvalue if setting.max_val is not None else 0xFFFFFFFF
+                def_val = setting.def_val.uvalue if setting.def_val is not None else 0
+                if min_val > max_val or def_val < min_val or def_val > max_val:
+                    generic.print_warning("Limits for GRF parameter {} are incoherent, ignoring.".format(param_num))
+                    min_val = 0
+                    max_val = 0xFFFFFFFF
                 setting_node.subnodes.append(LimitNode(min_val, max_val))
                 if len(setting.val_names) > 0:
                     value_names_node = BranchNode("VALU")

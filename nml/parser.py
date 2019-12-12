@@ -14,11 +14,11 @@ with NML; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA."""
 
 from nml import generic, expression, tokens, nmlop, unit
-from nml.ast import assignment, basecost, cargotable, conditional, deactivate, disable_item, error, font, general, grf, item, loop, produce, railtypetable, replace, spriteblock, switch, townnames, snowline, skipall, tilelayout, alt_sprites, base_graphics, override, sort_vehicles
+from nml.ast import assignment, basecost, cargotable, conditional, deactivate, disable_item, error, font, general, grf, item, loop, produce, tracktypetable, replace, spriteblock, switch, townnames, snowline, skipall, tilelayout, alt_sprites, base_graphics, override, sort_vehicles
 from nml.actions import actionD, real_sprite
 import ply.yacc as yacc
 
-class NMLParser(object):
+class NMLParser:
     """
     @ivar lexer: Scanner providing tokens.
     @type lexer: L{NMLLexer}
@@ -33,7 +33,10 @@ class NMLParser(object):
         self.lexer = tokens.NMLLexer()
         self.lexer.build()
         self.tokens = self.lexer.tokens
-        self.parser = yacc.yacc(debug = False, module = self, write_tables = 0)
+        self.parser = yacc.yacc(module=self,
+                                debug=False, optimize=True,
+                                write_tables=True,
+                                tabmodule='nml.generated.parsetab')
 
     def parse(self, text, input_filename):
         self.lexer.setup(text, input_filename)
@@ -88,6 +91,8 @@ class NMLParser(object):
                       | town_names
                       | cargotable
                       | railtype
+                      | roadtype
+                      | tramtype
                       | grf_block
                       | param_assignment
                       | skip_all
@@ -440,9 +445,19 @@ class NMLParser(object):
         if len(t) == 1: t[0] = []
         else: t[0] = t[1] + [switch.RandomChoice(t[2], t[4])]
 
+    def p_produce_cargo_list(self, t):
+        '''produce_cargo_list : LBRACKET RBRACKET
+                              | LBRACKET setting_value_list RBRACKET'''
+        if len(t) == 3: t[0] = []
+        else: t[0] = t[2]
+
     def p_produce(self, t):
-        'produce : PRODUCE LPAREN expression_list RPAREN SEMICOLON'
-        t[0] = produce.Produce(t[3], t.lineno(1))
+        '''produce : PRODUCE LPAREN ID COMMA produce_cargo_list COMMA produce_cargo_list COMMA expression RPAREN
+                   | PRODUCE LPAREN ID COMMA produce_cargo_list COMMA produce_cargo_list RPAREN'''
+        if len(t) == 11:
+            t[0] = produce.Produce2(t[3], t[5], t[7], t[9], t.lineno(1))
+        else:
+            t[0] = produce.Produce2(t[3], t[5], t[7], expression.ConstantNumeric(0), t.lineno(1))
 
     #
     # Real sprites and related stuff
@@ -646,18 +661,29 @@ class NMLParser(object):
         else: t[0] = t[1] + [t[3]]
 
     def p_railtypetable(self, t):
-        '''railtype : RAILTYPETABLE LBRACE railtypetable_list RBRACE
-                    | RAILTYPETABLE LBRACE railtypetable_list COMMA RBRACE'''
-        t[0] = railtypetable.RailtypeTable(t[3], t.lineno(1))
+        '''railtype : RAILTYPETABLE LBRACE tracktypetable_list RBRACE
+                    | RAILTYPETABLE LBRACE tracktypetable_list COMMA RBRACE'''
+        t[0] = tracktypetable.RailtypeTable(t[3], t.lineno(1))
 
-    def p_railtypetable_list(self, t):
-        '''railtypetable_list : railtypetable_item
-                              | railtypetable_list COMMA railtypetable_item'''
+    def p_roadtypetable(self, t):
+        '''roadtype : ROADTYPETABLE LBRACE tracktypetable_list RBRACE
+                    | ROADTYPETABLE LBRACE tracktypetable_list COMMA RBRACE'''
+        t[0] = tracktypetable.RoadtypeTable(t[3], t.lineno(1))
+
+    def p_tramtypetable(self, t):
+        '''tramtype : TRAMTYPETABLE LBRACE tracktypetable_list RBRACE
+                    | TRAMTYPETABLE LBRACE tracktypetable_list COMMA RBRACE'''
+        t[0] = tracktypetable.TramtypeTable(t[3], t.lineno(1))
+
+
+    def p_tracktypetable_list(self, t):
+        '''tracktypetable_list : tracktypetable_item
+                              | tracktypetable_list COMMA tracktypetable_item'''
         if len(t) == 2: t[0] = [t[1]]
         else: t[0] = t[1] + [t[3]]
 
-    def p_railtypetable_item(self, t):
-        '''railtypetable_item : ID
+    def p_tracktypetable_item(self, t):
+        '''tracktypetable_item : ID
                               | STRING_LITERAL
                               | ID COLON LBRACKET expression_list RBRACKET'''
         if len(t) == 2: t[0] = t[1]

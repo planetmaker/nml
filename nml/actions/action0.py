@@ -18,7 +18,7 @@ from nml import generic, expression, nmlop, grfstrings
 from nml.actions import base_action, action4, action6, actionD, action7
 from nml.ast import general
 
-class BlockAllocation(object):
+class BlockAllocation:
     """
     Administration of allocated blocks of a size, in a range of addresses.
     Blocks always start at address C{0}, but the first available freely usable
@@ -202,8 +202,10 @@ used_ids = [
     BlockAllocation(  0,    127, "Airport"),
     BlockAllocation(  0,     -1, "Signal", False),
     BlockAllocation(  0,    255, "Object"),
-    BlockAllocation(  0,     15, "Railtype"),
+    BlockAllocation(  0,     63, "Railtype"),
     BlockAllocation(  0,    255, "Airport Tile"),
+    BlockAllocation(  0,     15, "Roadtype"),
+    BlockAllocation(  0,     15, "Tramtype"),
 ]
 
 def print_stats():
@@ -614,7 +616,7 @@ def validate_prop_info_list(prop_info_list, pos_list, feature):
     global properties
     first_warnings = [(info, pos_list[i]) for i, info in enumerate(prop_info_list) if 'first' in info and i != 0]
     for info, pos in first_warnings:
-        for prop_name, prop_info in list(properties[feature].items()):
+        for prop_name, prop_info in properties[feature].items():
             if info == prop_info or (isinstance(prop_info, list) and info in prop_info):
                 generic.print_warning("Property '{}' should be set before all other properties and graphics.".format(prop_name), pos)
                 break
@@ -704,7 +706,7 @@ def get_cargolist_action(cargo_list):
     action0.num_ids = len(cargo_list)
     return [action0]
 
-def get_railtypelist_action(railtype_list):
+def get_tracktypelist_action(table_prop_id, cond_tracktype_not_defined, tracktype_list):
     action6.free_parameters.save()
     act6 = action6.Action6()
 
@@ -712,22 +714,22 @@ def get_railtypelist_action(railtype_list):
     action0, offset = create_action0(0x08, expression.ConstantNumeric(0), act6, action_list)
     id_table = []
     offset += 1 # Skip property number
-    for railtype in railtype_list:
-        if isinstance(railtype, expression.StringLiteral):
-            id_table.append(railtype)
+    for tracktype in tracktype_list:
+        if isinstance(tracktype, expression.StringLiteral):
+            id_table.append(tracktype)
             offset+=4
             continue
-        param, extra_actions = actionD.get_tmp_parameter(expression.ConstantNumeric(expression.parse_string_to_dword(railtype[-1])))
+        param, extra_actions = actionD.get_tmp_parameter(expression.ConstantNumeric(expression.parse_string_to_dword(tracktype[-1])))
         action_list.extend(extra_actions)
-        for idx in range(len(railtype)-2, -1, -1):
-            val = expression.ConstantNumeric(expression.parse_string_to_dword(railtype[idx]))
-            action_list.append(action7.SkipAction(0x09, 0x00, 4, (0x0D, None), val.value, 1))
+        for idx in range(len(tracktype)-2, -1, -1):
+            val = expression.ConstantNumeric(expression.parse_string_to_dword(tracktype[idx]))
+            action_list.append(action7.SkipAction(0x09, 0x00, 4, (cond_tracktype_not_defined, None), val.value, 1))
             action_list.append(actionD.ActionD(expression.ConstantNumeric(param), expression.ConstantNumeric(0xFF), nmlop.ASSIGN, expression.ConstantNumeric(0xFF), val))
         act6.modify_bytes(param, 4, offset)
         id_table.append(expression.StringLiteral(r"\00\00\00\00", None))
         offset += 4
-    action0.prop_list.append(IDListProp(0x12, id_table))
-    action0.num_ids = len(railtype_list)
+    action0.prop_list.append(IDListProp(table_prop_id, id_table))
+    action0.num_ids = len(tracktype_list)
 
     if len(act6.modifications) > 0: action_list.append(act6)
 
@@ -864,7 +866,7 @@ class LanguageTranslationTable(BaseAction0Property):
     def __init__(self, num, name_list, extra_names):
         self.num = num
         self.mappings = []
-        for name, idx in list(name_list.items()):
+        for name, idx in name_list.items():
             self.mappings.append( (idx, name) )
             if name in extra_names:
                 for extra_name in extra_names[name]:

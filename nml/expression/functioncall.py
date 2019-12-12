@@ -15,9 +15,11 @@ with NML; if not, write to the Free Software Foundation, Inc.,
 
 import datetime, calendar, math
 from nml import generic, nmlop
+from .array import Array
 from .base_expression import Type, Expression, ConstantNumeric, ConstantFloat
 from .binop import BinOp
 from .bitmask import BitMask
+from .cargo import ProduceCargo, AcceptCargo
 from .parameter import parse_string_to_dword
 from .storage_op import StorageOp
 from .string_literal import StringLiteral
@@ -292,7 +294,7 @@ def builtin_cargotype_available(name, args, pos):
 
 def builtin_railtype_available(name, args, pos):
     """
-    railtype_available(cargo_label) builtin function.
+    railtype_available(railtype_label) builtin function.
 
     @return 1 if the railtype label is available, 0 otherwise.
     """
@@ -300,6 +302,28 @@ def builtin_railtype_available(name, args, pos):
         raise generic.ScriptError(name + "() must have exactly 1 parameter", pos)
     label = args[0].reduce()
     return SpecialCheck((0x0D, None), 0, (0, 1), parse_string_to_dword(label), "{}({})".format(name, str(label)), pos = args[0].pos)
+
+def builtin_roadtype_available(name, args, pos):
+    """
+    roadtype_available(roadtype_label) builtin function.
+
+    @return 1 if the roadtype label is available, 0 otherwise.
+    """
+    if len(args) != 1:
+        raise generic.ScriptError(name + "() must have exactly 1 parameter", pos)
+    label = args[0].reduce()
+    return SpecialCheck((0x0F, None), 0, (0, 1), parse_string_to_dword(label), "{}({})".format(name, str(label)), pos = args[0].pos)
+
+def builtin_tramtype_available(name, args, pos):
+    """
+    tramtype_available(tramtype_label) builtin function.
+
+    @return 1 if the roadtype label is available, 0 otherwise.
+    """
+    if len(args) != 1:
+        raise generic.ScriptError(name + "() must have exactly 1 parameter", pos)
+    label = args[0].reduce()
+    return SpecialCheck((0x11, None), 0, (0, 1), parse_string_to_dword(label), "{}({})".format(name, str(label)), pos = args[0].pos)
 
 def builtin_grf_status(name, args, pos):
     """
@@ -426,6 +450,22 @@ def builtin_industry_type(name, args, pos):
         raise generic.ScriptError("Second argument 'id' of industry_type() must be in range 0..127", pos)
 
     return ConstantNumeric(type << 7 | id)
+
+def builtin_cargoexpr(name, args, pos):
+    if len(args) < 1:
+        raise generic.ScriptError(name + "() must have 1 or more parameters", pos)
+
+    from nml import global_constants
+    if not isinstance(args[0], StringLiteral) or args[0].value not in global_constants.cargo_numbers:
+        raise generic.ScriptError("First argument of " + name + "() must be a string literal that is also in your cargo table", pos)
+    cargotype = global_constants.cargo_numbers[args[0].value]
+
+    if name == 'produce_cargo':
+        return ProduceCargo(cargotype, args[1:], pos)
+    elif name == 'accept_cargo':
+        return AcceptCargo(cargotype, args[1:], pos)
+    else:
+        assert False
 
 def builtin_trigonometric(name, args, pos):
     if len(args) != 1:
@@ -643,6 +683,8 @@ function_table = {
     'version_openttd' : builtin_version_openttd,
     'cargotype_available' : builtin_cargotype_available,
     'railtype_available' : builtin_railtype_available,
+    'roadtype_available' : builtin_roadtype_available,
+    'tramtype_available' : builtin_tramtype_available,
     'grf_current_status' : builtin_grf_status,
     'grf_future_status' : builtin_grf_status,
     'grf_order_behind' : builtin_grf_status,
@@ -654,6 +696,8 @@ function_table = {
     'railtype' : builtin_railtype,
     'reserve_sprites' : builtin_reserve_sprites,
     'industry_type' : builtin_industry_type,
+    'accept_cargo': builtin_cargoexpr,
+    'produce_cargo': builtin_cargoexpr,
     'int' : builtin_int,
     'abs' : builtin_abs,
     'acos' : builtin_trigonometric,

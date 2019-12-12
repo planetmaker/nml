@@ -1,8 +1,8 @@
 
-for f in `ls -d *.txt docs docs/*.txt`; do cp -r $f dist; done
+for f in $(ls -d README.md LICENSE *.txt docs docs/*.txt); do cp -r $f dist; done
 
 # Update Jenkins' NML
-if [ "$USE_REV" == "HEAD" ] || [ "$BUILD_TYPE" == "releases"  ]; then
+if [ "$USE_REV" == "HEAD" ] || [ "$BUILD_TYPE" == "releases"  ] || [ "USE_REV" == "origin/master" ]; then
     echo "Updating NML-$BRANCH on main build node"
 
     if [ ! -d "~/bin/repos/nml-$BRANCH" ]; then
@@ -21,14 +21,6 @@ if [ "$USE_REV" == "HEAD" ] || [ "$BUILD_TYPE" == "releases"  ]; then
     # Build also the C-extensions
     make extensions
 
-    echo "Updating NML on unused NewGRF build node disabled!"
-    # Update the default build machine (debian7, x64)
-    # ssh repos@build-default << ENDSSH
-    # cd nml-$BRANCH
-    # hg pull
-    # hg up -r${USE_REV}
-    # make extensions
-    # ENDSSH
 else
     echo "Neither tip nor a release was built. Not updating NML"
 fi

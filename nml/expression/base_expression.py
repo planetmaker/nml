@@ -15,7 +15,7 @@ with NML; if not, write to the Free Software Foundation, Inc.,
 
 from nml import generic
 
-class Type(object):
+class Type:
     """
     Enum-type class of the various value types possible in NML
     """
@@ -25,7 +25,7 @@ class Type(object):
     FUNCTION_PTR = 3
     SPRITEGROUP_REF = 4
 
-class Expression(object):
+class Expression:
     """
     Superclass for all expression classes.
 
@@ -121,6 +121,8 @@ class ConstantNumeric(Expression):
     def __init__(self, value, pos = None):
         Expression.__init__(self, pos)
         self.value = generic.truncate_int32(value)
+        self.uvalue = self.value
+        if self.uvalue < 0: self.uvalue += 2**32
 
     def debug_print(self, indentation):
         generic.print_dbg(indentation, 'Int:', self.value)

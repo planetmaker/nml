@@ -16,6 +16,27 @@ with NML; if not, write to the Free Software Foundation, Inc.,
 # -*- coding: utf-8 -*-
 import sys, os, time
 
+# Enable VT100 sequences on windows consoles
+if os.name == "nt":
+    class Break(Exception): pass
+    try:
+        from ctypes import byref, windll
+        from ctypes.wintypes import DWORD, HANDLE
+        kernel32 = windll.kernel32
+        h = kernel32.GetStdHandle(-11) # stdout
+        if h is None or h == HANDLE(-1):
+            raise Break()
+        FILE_TYPE_CHAR = 0x0002
+        if (kernel32.GetFileType(h) & 3) != FILE_TYPE_CHAR:
+            raise Break()
+        mode = DWORD()
+        kernel32.GetConsoleMode(h, byref(mode))
+        ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
+        if (mode.value & ENABLE_VIRTUAL_TERMINAL_PROCESSING) == 0:
+            kernel32.SetConsoleMode(h, mode.value | ENABLE_VIRTUAL_TERMINAL_PROCESSING)
+    except Break:
+        pass
+
 def truncate_int32(value):
     """
     Truncate the given value so it can be stored in exactly 4 bytes. The sign
@@ -108,7 +129,7 @@ def build_position(poslist):
     pos.includes = pos.includes + poslist[:-1]
     return pos
 
-class Position(object):
+class Position:
     """
     Base class representing a position in a file.
 
@@ -295,7 +316,7 @@ def clear_progress():
     hide_progress()
 
     if (progress_message is not None) and (verbosity_level >= VERBOSITY_TIMING):
-        print("{} {:.1f} s".format(progress_message, time.clock() - progress_start_time))
+        print("{} {:.1f} s".format(progress_message, time.process_time() - progress_start_time))
 
     progress_message = None
     progress_start_time = None
@@ -324,12 +345,12 @@ def print_progress(msg, incremental = False):
     progress_message = msg
 
     if incremental:
-        t = time.clock()
+        t = time.process_time()
         if (progress_update_time is not None) and (t - progress_update_time < 1):
             return
         progress_update_time = t
     else:
-        progress_start_time = time.clock()
+        progress_start_time = time.process_time()
 
     print_eol(msg)
 
@@ -355,8 +376,8 @@ def print_warning(msg, pos = None):
 
     msg = " nmlc warning: " + msg
 
-    if (sys.stderr.isatty()) and (os.name == 'posix'):
-        msg = "\033[33m" + msg + "\033[0m"
+    if sys.stderr.isatty():
+        msg = "\033[93m" + msg + "\033[0m"
 
     hide_progress()
     print(msg, file=sys.stderr)
@@ -367,7 +388,13 @@ def print_error(msg):
     Output an error message to the user.
     """
     clear_progress()
-    print("nmlc ERROR: " + msg, file=sys.stderr)
+
+    msg = " nmlc ERROR: " + msg
+
+    if sys.stderr.isatty():
+        msg = "\033[91m" + msg + "\033[0m"
+
+    print(msg, file=sys.stderr)
 
 def print_dbg(indent, *args):
     """

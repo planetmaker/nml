@@ -23,6 +23,8 @@ reserved = {
     'param' :               'PARAMETER',
     'cargotable' :          'CARGOTABLE',
     'railtypetable' :       'RAILTYPETABLE',
+    'roadtypetable' :       'ROADTYPETABLE',
+    'tramtypetable' :       'TRAMTYPETABLE',
     'if' :                  'IF',
     'else' :                'ELSE',
     'while' :               'WHILE',            # reserved
@@ -60,7 +62,7 @@ reserved = {
 line_directive1_pat = re.compile(r'\#line\s+(\d+)\s*(\r?\n|"(.*)"\r?\n)')
 line_directive2_pat = re.compile(r'\#\s+(\d+)\s+"(.*)"\s*((?:\d+\s*)*)\r?\n')
 
-class NMLLexer(object):
+class NMLLexer:
     """
     @ivar lexer: PLY scanner object.
     @type lexer: L{ply.lex}
@@ -245,7 +247,7 @@ class NMLLexer(object):
         """
         Initial construction of the scanner.
         """
-        self.lexer = lex.lex(module=self)
+        self.lexer = lex.lex(module=self, optimize=1, lextab='nml.generated.lextab')
 
 
     def setup(self, text, fname):

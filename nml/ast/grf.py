@@ -154,6 +154,11 @@ class GRF(base_statement.BaseStatement):
         generic.print_dbg(indentation + 2, 'Minimal compatible version:')
         self.min_compatible_version.debug_print(indentation + 4)
 
+        if len(self.params) > 0:
+            generic.print_dbg(indentation + 2, 'Params:')
+            for param in self.params:
+                param.debug_print(indentation + 4)
+
     def get_action_list(self):
         global palette_node, blitter_node
         palette_node = action14.UsedPaletteNode("A")
@@ -179,7 +184,7 @@ class GRF(base_statement.BaseStatement):
         ret += '}\n'
         return ret
 
-class ParameterSetting(object):
+class ParameterSetting:
     def __init__(self, name, value_list):
         self.name = name
         self.value_list = value_list
@@ -209,6 +214,17 @@ class ParameterSetting(object):
                 ret += "\t\t\t{}: {};\n".format(val.name, val.value)
         ret += "\t\t}\n"
         return ret
+
+    def debug_print(self, indentation):
+        self.name.debug_print(indentation)
+        for val in self.value_list:
+            val.name.debug_print(indentation + 2)
+            if val.name.value == 'names':
+                for name in val.value.values:
+                    name.name.debug_print(indentation + 4)
+                    name.value.debug_print(indentation + 4)
+            else:
+                val.value.debug_print(indentation + 4)
 
     def set_property(self, name, value):
         """
@@ -263,7 +279,7 @@ class ParameterSetting(object):
         else:
             raise generic.ScriptError("Unknown setting-property " + name, value.pos)
 
-class ParameterDescription(object):
+class ParameterDescription:
     def __init__(self, setting_list, num = None, pos = None):
         self.setting_list = setting_list
         self.num = num
@@ -278,6 +294,11 @@ class ParameterDescription(object):
             ret += str(setting)
         ret += "\t}\n"
         return ret
+
+    def debug_print(self, indentation):
+        self.num.debug_print(indentation)
+        for setting in self.setting_list:
+            setting.debug_print(indentation + 2)
 
     def pre_process(self, num):
         if self.num is None: self.num = num

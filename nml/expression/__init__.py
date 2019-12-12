@@ -21,6 +21,7 @@ from .bin_not import BinNot, Not
 from .binop import BinOp
 from .bitmask import BitMask
 from .boolean import Boolean
+from .cargo import ProduceCargo, AcceptCargo
 from .functioncall import FunctionCall, SpecialCheck, GRMOp
 from .functionptr import FunctionPtr
 from .identifier import Identifier
@@ -38,7 +39,7 @@ is_valid_id = re.compile('[a-zA-Z_][a-zA-Z0-9_]{3}$')
 
 def identifier_to_print(name):
     """
-    Check whether the given name is a valid 4 letter identifier to print (for cargoes and railtypes).
+    Check whether the given name is a valid 4 letter identifier to print (for cargoes, railtypes, roadtypes and tramtypes).
 
     @param name: Name to check.
     @return The identifier itself, if it is a valid name, else a string literal text with the name.

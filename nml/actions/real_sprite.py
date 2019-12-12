@@ -16,10 +16,7 @@ with NML; if not, write to the Free Software Foundation, Inc.,
 from nml import generic, expression
 from nml.actions import base_action
 from nml.ast import assignment
-try:
-    from PIL import Image
-except ImportError:
-    import Image
+from PIL import Image
 
 FLAG_NOCROP  = 0x0040
 FLAG_NOALPHA = 0x0100
@@ -120,7 +117,7 @@ def convert_palette(pal):
         ret[palmap_d2w[idx]] = palmap_d2w[colour]
     return ret
 
-class RealSprite(object):
+class RealSprite:
     """
     @ivar param_list: Original parameters from NML source file.
     @type param_list: List of L{expression.Expression}, or C{None}
@@ -288,7 +285,7 @@ class RealSpriteAction(SpriteAction):
             file.print_sprite([s for s in self.sprite_list if not s.is_empty])
         if self.last: file.newline()
 
-class RecolourSprite(object):
+class RecolourSprite:
     def __init__(self, mapping, label = None, poslist = None):
         self.mapping = mapping
         self.label = label
@@ -365,7 +362,7 @@ class RecolourSpriteAction(SpriteAction):
         if self.last: file.newline()
         file.end_sprite()
 
-class TemplateUsage(object):
+class TemplateUsage:
     def __init__(self, name, param_list, label, pos):
         self.name = name
         self.param_list = param_list
